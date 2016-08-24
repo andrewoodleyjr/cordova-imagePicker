@@ -84,8 +84,25 @@
             }
             
             UIImage* image = [UIImage imageWithCGImage:imgRef scale:1.0f orientation:orientation];
-            UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
-            data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+            if (self.width == 0 && self.height == 0) {
+                
+                // Fix the orientation
+                if(!(image.imageOrientation == UIImageOrientationUp ||
+                     image.imageOrientation == UIImageOrientationUpMirrored))
+                {
+                    CGSize imgsize = image.size;
+                    UIGraphicsBeginImageContext(imgsize);
+                    [image drawInRect:CGRectMake(0.0, 0.0, imgsize.width, imgsize.height)];
+                    image = UIGraphicsGetImageFromCurrentImageContext();
+                    UIGraphicsEndImageContext();
+                }
+                
+                
+                 data = UIImageJPEGRepresentation(image, self.quality/100.0f);
+             } else {
+                 UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
+                 data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+             }
             
             if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
                 result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
